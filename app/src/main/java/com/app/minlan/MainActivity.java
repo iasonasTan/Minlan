@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;
+    private TextInputEditText mAppNameInput;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +39,11 @@ public class MainActivity extends AppCompatActivity {
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         mApplicationsInfo = Collections.unmodifiableList(mPackageManager.queryIntentActivities(intent, 0));
 
-        TextInputEditText appNameInput = findViewById(R.id.app_name_input);
         ViewGroup appsLayout = findViewById(R.id.app_container);
         addAppsToLayout(appsLayout, "");
 
-        appNameInput.addTextChangedListener(new TextWatcher() {
+        mAppNameInput = findViewById(R.id.app_name_input);
+        mAppNameInput.addTextChangedListener(new TextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 String requestedName = s.toString().toLowerCase().replace(" ", "");
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 normalAppView.setOnClickListener(v -> {
+                    mAppNameInput.setText("");
                     Intent launchIntent = mPackageManager.getLaunchIntentForPackage(packageName);
                     startActivity(launchIntent);
                 });
