@@ -8,9 +8,9 @@ import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;
     private TextInputEditText mAppNameInput;
+    private ViewGroup mAppViewsLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,27 +36,15 @@ public class MainActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
 
         mPackageManager = getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+
+        Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
         mApplicationsInfo = Collections.unmodifiableList(mPackageManager.queryIntentActivities(intent, 0));
 
-        ViewGroup appsLayout = findViewById(R.id.app_container);
-        addAppsToLayout(appsLayout, "");
+        mAppViewsLayout = findViewById(R.id.app_container);
+        addAppsToLayout(mAppViewsLayout, "");
 
         mAppNameInput = findViewById(R.id.app_name_input);
-        mAppNameInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                String requestedName = s.toString().toLowerCase().replace(" ", "");
-                addAppsToLayout(appsLayout, requestedName);
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
-        });
+        mAppNameInput.addTextChangedListener(new InputTextChangeListener());
     }
 
     private void addAppsToLayout(ViewGroup appsLayout,String requestedName){
@@ -63,36 +52,71 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
         for(ResolveInfo app: mApplicationsInfo) {
             final String appName = app.loadLabel(mPackageManager).toString();
-            final String packageName = app.activityInfo.packageName;
-            final boolean favourite = preferences.getBoolean(packageName, false);
-            if(favourite&&requestedName.isEmpty() ||appName.toLowerCase().replace(" ", "").contains(requestedName)) {
+            final String appPackageName = app.activityInfo.packageName;
+            final boolean isFavourite = preferences.getBoolean(appPackageName, false);
+            if(isFavourite&&requestedName.isEmpty() ||appName.toLowerCase().replace(" ", "").contains(requestedName)) {
                 AbstractAppView normalAppView;
-                if(favourite) {
+                if(isFavourite) {
                     normalAppView = new FavouriteAppView(this, appName, app.loadIcon(mPackageManager));
                 } else {
                     normalAppView = new NormalAppView(this, appName, app.loadIcon(mPackageManager));
                 }
-                var layoutParams = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                );
-                normalAppView.setOnClickListener(v -> {
-                    mAppNameInput.setText("");
-                    Intent launchIntent = mPackageManager.getLaunchIntentForPackage(packageName);
-                    startActivity(launchIntent);
-                });
-                normalAppView.setOnLongClickListener(v -> {
-                    getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
-                            .edit()
-                            .putBoolean(packageName, !favourite)
-                            .apply();
-                    addAppsToLayout(appsLayout, requestedName);
-                    return true;
-                });
-                normalAppView.setLayoutParams(layoutParams);
-                int index = favourite ? 0 : appsLayout.getChildCount();
+                normalAppView.setOnClickListener(new AppViewClickListener(appPackageName));
+                normalAppView.setOnLongClickListener(new AppViewLongClickListener(appPackageName, isFavourite, requestedName));
+                final int index = isFavourite ? 0 : appsLayout.getChildCount();
                 appsLayout.addView(normalAppView, index);
             }
+        }
+    }
+
+    private final class InputTextChangeListener implements TextWatcher {
+        @Override
+        public void afterTextChanged(Editable s) {
+            String requestedName = s.toString().toLowerCase().replace(" ", "");
+            addAppsToLayout(mAppViewsLayout, requestedName);
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
+    }
+
+    private final class AppViewClickListener implements View.OnClickListener {
+        private final String mAppPackageName;
+
+        private AppViewClickListener(String appPackageName) {
+            this.mAppPackageName = appPackageName;
+        }
+
+        @Override
+        public void onClick(View v) {
+            mAppNameInput.setText("");
+            Intent launchIntent = mPackageManager.getLaunchIntentForPackage(mAppPackageName);
+            startActivity(launchIntent);
+        }
+    }
+
+    private final class AppViewLongClickListener implements View.OnLongClickListener {
+        private final String mAppPackageName;
+        private final boolean mIsFavourite;
+        private final String mRequestedName;
+
+        private AppViewLongClickListener(String appPackageName, boolean isFavourite, String requestedName) {
+            this.mAppPackageName = appPackageName;
+            this.mIsFavourite = isFavourite;
+            this.mRequestedName = requestedName;
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(mAppPackageName, !mIsFavourite)
+                    .apply();
+            addAppsToLayout(mAppViewsLayout, mRequestedName);
+            return true;
         }
     }
 
