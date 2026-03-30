@@ -2,6 +2,7 @@ package com.app.minlan;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
@@ -16,10 +17,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.Collections;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     public static final String SHARED_APPS_PREFS = "favourite_apps";
+
+    private List<ResolveInfo> mApplicationsInfo;
+    private PackageManager mPackageManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,11 +32,11 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER);
-//        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-//            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-//            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-//            return insets;
-//        });
+
+        mPackageManager = getPackageManager();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        mApplicationsInfo = Collections.unmodifiableList(mPackageManager.queryIntentActivities(intent, 0));
 
         TextInputEditText appNameInput = findViewById(R.id.app_name_input);
         ViewGroup appsLayout = findViewById(R.id.app_container);
@@ -54,28 +59,24 @@ public class MainActivity extends AppCompatActivity {
 
     private void addAppsToLayout(ViewGroup appsLayout,String requestedName){
         appsLayout.removeAllViews();
-        PackageManager pm = getPackageManager();
-        Intent intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        List<ResolveInfo> apps = pm.queryIntentActivities(intent, 0);
-        for(ResolveInfo app: apps) {
-            final String appName = app.loadLabel(pm).toString();
+        SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
+        for(ResolveInfo app: mApplicationsInfo) {
+            final String appName = app.loadLabel(mPackageManager).toString();
             final String packageName = app.activityInfo.packageName;
-            final boolean favourite = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
-                    .getBoolean(packageName, false);
-            if(favourite||appName.toLowerCase().replace(" ", "").contains(requestedName)) {
+            final boolean favourite = preferences.getBoolean(packageName, false);
+            if(favourite&&requestedName.isEmpty() ||appName.toLowerCase().replace(" ", "").contains(requestedName)) {
                 AbstractAppView normalAppView;
                 if(favourite) {
-                    normalAppView = new FavouriteAppView(this, appName, app.loadIcon(pm));
+                    normalAppView = new FavouriteAppView(this, appName, app.loadIcon(mPackageManager));
                 } else {
-                    normalAppView = new NormalAppView(this, appName, app.loadIcon(pm));
+                    normalAppView = new NormalAppView(this, appName, app.loadIcon(mPackageManager));
                 }
                 var layoutParams = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                 );
                 normalAppView.setOnClickListener(v -> {
-                    Intent launchIntent = pm.getLaunchIntentForPackage(packageName);
+                    Intent launchIntent = mPackageManager.getLaunchIntentForPackage(packageName);
                     startActivity(launchIntent);
                 });
                 normalAppView.setOnLongClickListener(v -> {
