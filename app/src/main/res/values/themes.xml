@@ -1,0 +1,17 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+<!--    <style name="Base.Theme.MinimalLauncher" parent="Theme.Material3.DayNight.NoActionBar">-->
+<!--        &lt;!&ndash; Customize your light theme here. &ndash;&gt;-->
+<!--        &lt;!&ndash; <item name="colorPrimary">@color/my_light_primary</item> &ndash;&gt;-->
+<!--    </style>-->
+
+    <style name="Theme.Transparent" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackgroundCacheHint">@null</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:windowShowWallpaper">true</item>
+    </style>
+
+    <style name="Theme.MinimalLauncher" parent="Theme.Transparent" />
+</resources>

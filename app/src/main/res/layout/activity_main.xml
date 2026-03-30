@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:padding="10dp"
+    android:layout_marginTop="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/app_name_input"
+        android:hint="@string/hint_app_name"
+        android:textSize="35sp"
+        android:layout_width="match_parent"
+        android:maxLines="1"
+        android:layout_height="60dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/app_container"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- VIEWS ADDED WITH JAVA -->
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>
