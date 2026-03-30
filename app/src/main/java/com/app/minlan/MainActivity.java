@@ -11,6 +11,8 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
 
         mAppNameInput = findViewById(R.id.app_name_input);
         mAppNameInput.addTextChangedListener(new InputTextChangeListener());
+
+        ImageButton button = findViewById(R.id.clear_button);
+        button.setOnClickListener(v -> mAppNameInput.setText(""));
     }
 
     private void addAppsToLayout(ViewGroup appsLayout,String requestedName){

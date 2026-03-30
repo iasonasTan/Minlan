@@ -8,13 +8,31 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/app_name_input"
-        android:hint="@string/hint_app_name"
-        android:textSize="35sp"
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:maxLines="1"
-        android:layout_height="60dp" />
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_weight="10"
+            android:id="@+id/app_name_input"
+            android:hint="@string/hint_app_name"
+            android:textSize="35sp"
+            android:layout_width="0dp"
+            android:maxLines="1"
+            android:layout_height="wrap_content" />
+
+        <ImageButton
+            android:id="@+id/clear_button"
+            android:src="@drawable/clear"
+            android:background="@android:color/transparent"
+            android:layout_gravity="center"
+            android:layout_width="0dp"
+            android:layout_weight="2"
+            android:layout_height="wrap_content"
+            tools:ignore="ContentDescription" />
+
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"

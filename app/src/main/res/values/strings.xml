@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Minlan</string>
-    <string name="hint_app_name">App Name</string>
+    <string name="hint_app_name">Search app…</string>
 </resources>
