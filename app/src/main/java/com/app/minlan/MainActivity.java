@@ -8,11 +8,14 @@ import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
         mAppNameInput = findViewById(R.id.app_name_input);
         mAppNameInput.addTextChangedListener(new InputTextChangeListener());
+        mAppNameInput.setOnEditorActionListener(new InputActionListener());
 
         ImageButton button = findViewById(R.id.clear_button);
         button.setOnClickListener(v -> mAppNameInput.setText(""));
@@ -121,6 +125,17 @@ public class MainActivity extends AppCompatActivity {
                     .putBoolean(mAppPackageName, !mIsFavourite)
                     .apply();
             addAppsToLayout(mAppViewsLayout, mRequestedName);
+            return true;
+        }
+    }
+
+    private final class InputActionListener implements TextView.OnEditorActionListener {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if(actionId == EditorInfo.IME_ACTION_DONE){
+                InputMethodManager inputMethodManager = getSystemService(InputMethodManager.class);
+                inputMethodManager.hideSoftInputFromWindow(mAppNameInput.getWindowToken(), 0);
+            }
             return true;
         }
     }

@@ -20,6 +20,7 @@
             android:textSize="35sp"
             android:layout_width="0dp"
             android:maxLines="1"
+            android:inputType="text"
             android:layout_height="wrap_content" />
 
         <ImageButton
