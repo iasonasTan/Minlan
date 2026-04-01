@@ -43,7 +43,13 @@ public class MainActivity extends AppCompatActivity {
         mPackageManager = getPackageManager();
 
         Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
-        mApplicationsInfo = Collections.unmodifiableList(mPackageManager.queryIntentActivities(intent, 0));
+        List<ResolveInfo> apps = mPackageManager.queryIntentActivities(intent, 0);
+
+        apps.sort((a, b) ->
+                a.loadLabel(mPackageManager).toString()
+                        .compareToIgnoreCase(b.loadLabel(mPackageManager).toString()));
+
+        mApplicationsInfo = Collections.unmodifiableList(apps);
 
         mAppViewsLayout = findViewById(R.id.app_container);
         addAppsToLayout(mAppViewsLayout, "");
