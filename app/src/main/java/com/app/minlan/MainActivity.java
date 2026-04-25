@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -20,10 +21,13 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.app.minlan.view.AbstractAppView;
+import com.app.minlan.view.AppViewFactory;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 public class MainActivity extends AppCompatActivity {
     public static final String SHARED_APPS_PREFS = "favourite_apps";
@@ -52,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
         mApplicationsInfo = Collections.unmodifiableList(apps);
 
         mAppViewsLayout = findViewById(R.id.app_container);
-        addAppsToLayout(mAppViewsLayout, "");
+        addAppsToLayout(mAppViewsLayout, "", true, true);
+        addAppsToLayout(mAppViewsLayout, "", false,false);
 
         mAppNameInput = findViewById(R.id.app_name_input);
         mAppNameInput.addTextChangedListener(new InputTextChangeListener());
@@ -62,24 +67,21 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(v -> mAppNameInput.setText(""));
     }
 
-    private void addAppsToLayout(ViewGroup appsLayout,String requestedName){
-        appsLayout.removeAllViews();
+    private void addAppsToLayout(ViewGroup appsLayout,String requestedName,boolean favourite,boolean clear){
+        Function<String, Boolean> compareName = name ->
+                name.toLowerCase().replace(" ", "").contains(requestedName.toLowerCase().replace(" ", ""));
+        if(clear) appsLayout.removeAllViews();
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
         for(ResolveInfo app: mApplicationsInfo) {
             final String appName = app.loadLabel(mPackageManager).toString();
             final String appPackageName = app.activityInfo.packageName;
             final boolean isFavourite = preferences.getBoolean(appPackageName, false);
-            if(isFavourite&&requestedName.isEmpty() ||appName.toLowerCase().replace(" ", "").contains(requestedName)) {
-                AbstractAppView normalAppView;
-                if(isFavourite) {
-                    normalAppView = new FavouriteAppView(this, appName, app.loadIcon(mPackageManager));
-                } else {
-                    normalAppView = new NormalAppView(this, appName, app.loadIcon(mPackageManager));
-                }
-                normalAppView.setOnClickListener(new AppViewClickListener(appPackageName));
-                normalAppView.setOnLongClickListener(new AppViewLongClickListener(appPackageName, isFavourite, requestedName));
-                final int index = isFavourite ? 0 : appsLayout.getChildCount();
-                appsLayout.addView(normalAppView, index);
+            if(isFavourite==favourite&&compareName.apply(appName)||isFavourite==favourite&&requestedName.isEmpty()) {
+                Drawable icon = app.loadIcon(mPackageManager);
+                AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, isFavourite);
+                appView.setOnClickListener(new AppViewClickListener(appPackageName));
+                appView.setOnLongClickListener(new AppViewLongClickListener(appPackageName, isFavourite, requestedName));
+                appsLayout.addView(appView);
             }
         }
     }
@@ -88,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
             String requestedName = s.toString().toLowerCase().replace(" ", "");
-            addAppsToLayout(mAppViewsLayout, requestedName);
+            addAppsToLayout(mAppViewsLayout, requestedName, true, true);
+            addAppsToLayout(mAppViewsLayout, requestedName, false,false);
         }
 
         @Override
@@ -130,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
                     .edit()
                     .putBoolean(mAppPackageName, !mIsFavourite)
                     .apply();
-            addAppsToLayout(mAppViewsLayout, mRequestedName);
+            addAppsToLayout(mAppViewsLayout, mRequestedName, true, true);
+            addAppsToLayout(mAppViewsLayout, mRequestedName, false,false);
             return true;
         }
     }
@@ -145,19 +149,4 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     }
-
-//    private Drawable tryAdaptive(Drawable raw) {
-//        if (raw instanceof AdaptiveIconDrawable) {
-//            Drawable monochrome = raw.getCurrent();
-//            int color = MaterialColors.getColor(
-//                    this,
-//                    com.google.android.material.R.attr.colorPrimaryFixed,
-//                    Color.WHITE
-//            );
-//            //monochrome.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-//            monochrome.setTint(color);
-//            return monochrome;
-//        }
-//        return raw;
-//    }
 }

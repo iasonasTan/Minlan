@@ -1,4 +1,4 @@
-package com.app.minlan;
+package com.app.minlan.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.app.minlan.R;
 
 @SuppressLint("ViewConstructor")
 public abstract class AbstractAppView extends LinearLayout {

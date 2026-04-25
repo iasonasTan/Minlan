@@ -1,0 +1,104 @@
+
+//    public static Drawable tryAdaptive(Context context, Drawable icon) {
+//        if (!(icon instanceof AdaptiveIconDrawable)) return icon;
+//
+//        AdaptiveIconDrawable aid = (AdaptiveIconDrawable) icon;
+//        int size = (int) TypedValue.applyDimension(
+//                TypedValue.COMPLEX_UNIT_DIP, 52,
+//                context.getResources().getDisplayMetrics()
+//        );
+//
+//        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+//        Canvas canvas = new Canvas(bitmap);
+//
+//        canvas.save();
+//        Path clip = new Path();
+//        clip.addCircle(size / 2f, size / 2f, size / 2f, Path.Direction.CW);
+//        canvas.clipPath(clip);
+//
+//        int inset = (int) (size * 0.18f);
+//        aid.setBounds(-inset, -inset, size + inset, size + inset);
+//
+//        Drawable bg = aid.getBackground();
+//        if (bg != null) bg.draw(canvas);
+//
+//        Drawable fg = aid.getForeground();
+//        if (fg != null) fg.draw(canvas);
+//
+//        canvas.restore();
+//        return new BitmapDrawable(context.getResources(), bitmap);
+//    }
+
+//    public static Bitmap getAppIcon(PackageManager mPackageManager, String packageName) {
+//
+//        try {
+//            Drawable drawable = mPackageManager.getApplicationIcon(packageName);
+//
+//            if (drawable instanceof BitmapDrawable) {
+//                return ((BitmapDrawable) drawable).getBitmap();
+//            } else if (drawable instanceof AdaptiveIconDrawable) {
+//                Drawable backgroundDr = ((AdaptiveIconDrawable) drawable).getBackground();
+//                Drawable foregroundDr = ((AdaptiveIconDrawable) drawable).getForeground();
+//
+//                Drawable[] drr = new Drawable[2];
+//                drr[0] = backgroundDr;
+//                drr[1] = foregroundDr;
+//
+//                LayerDrawable layerDrawable = new LayerDrawable(drr);
+//
+//                int width = layerDrawable.getIntrinsicWidth();
+//                int height = layerDrawable.getIntrinsicHeight();
+//
+//                Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+//
+//                Canvas canvas = new Canvas(bitmap);
+//
+//                layerDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+//                layerDrawable.draw(canvas);
+//
+//                return bitmap;
+//            }
+//        } catch (PackageManager.NameNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return null;
+//    }
+
+//    public static Drawable tryAdaptive(Drawable icon) {
+//        if(icon instanceof AdaptiveIconDrawable) {
+//            AdaptiveIconDrawable aid = (AdaptiveIconDrawable)icon;
+//            Bitmap bitmap = makeAdaptive(aid, icon.getIntrinsicWidth());
+//            return new BitmapDrawable(Resources.getSystem(), bitmap);
+//        }
+//        return icon;
+//    }
+
+//    public static Bitmap makeAdaptive(AdaptiveIconDrawable icon, int size) {
+//        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+//        Canvas canvas = new Canvas(bitmap);
+//        Path clip = new Path();
+//        clip.addCircle(size / 2f, size / 2f, size / 2f, Path.Direction.CW);
+//        canvas.clipPath(clip);
+//        icon.setBounds(0, 0, size, size);
+//        Drawable bg = icon.getBackground();
+//        if (bg != null) bg.draw(canvas);
+//        Drawable fg = icon.getForeground();
+//        if (fg != null) fg.draw(canvas);
+//        return bitmap;
+//    }
+
+//    private Drawable makeAdaptive(Drawable raw) {
+//        if (raw instanceof AdaptiveIconDrawable) {
+//            Drawable monochrome = raw.getCurrent();
+//            int color = MaterialColors.getColor(
+//                    this,
+//                    com.google.android.material.R.attr.colorPrimaryFixed,
+//                    Color.WHITE
+//            );
+//            //monochrome.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+//            monochrome.setTint(color);
+//            return monochrome;
+//        }
+//        return raw;
+//    }
