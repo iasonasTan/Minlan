@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -56,8 +57,7 @@ public class MainActivity extends AppCompatActivity {
         mApplicationsInfo = Collections.unmodifiableList(apps);
 
         mAppViewsLayout = findViewById(R.id.app_container);
-        addAppsToLayout(mAppViewsLayout, "", true, true);
-        addAppsToLayout(mAppViewsLayout, "", false,false);
+        addAppsToLayout("", AppStatus.WHICHEVER);
 
         mAppNameInput = findViewById(R.id.app_name_input);
         mAppNameInput.addTextChangedListener(new InputTextChangeListener());
@@ -67,22 +67,51 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(v -> mAppNameInput.setText(""));
     }
 
-    private void addAppsToLayout(ViewGroup appsLayout,String requestedName,boolean favourite,boolean clear){
-        Function<String, Boolean> compareName = name ->
-                name.toLowerCase().replace(" ", "").contains(requestedName.toLowerCase().replace(" ", ""));
-        if(clear) appsLayout.removeAllViews();
+    private void addAppsToLayout(String requestedName, AppStatus status) {
+        Function<String, Boolean> compareName = name -> name.toLowerCase().replace(" ", "").contains(
+                requestedName.toLowerCase().replace(" ", "")
+        );
+
+        if(status == AppStatus.WHICHEVER) {
+            mAppViewsLayout.removeAllViews();
+            addAppsToLayout(requestedName, AppStatus.FAVOURITE);
+            addAppsToLayout(requestedName, AppStatus.NORMAL);
+            return;
+        }
+
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
-        for(ResolveInfo app: mApplicationsInfo) {
+        for (ResolveInfo app : mApplicationsInfo) {
             final String appName = app.loadLabel(mPackageManager).toString();
             final String appPackageName = app.activityInfo.packageName;
-            final boolean isFavourite = preferences.getBoolean(appPackageName, false);
-            if(isFavourite==favourite&&compareName.apply(appName)||isFavourite==favourite&&requestedName.isEmpty()) {
+            final AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(appPackageName, "NORMAL"));
+            if (status == appStatus && compareName.apply(appName)) {
                 Drawable icon = app.loadIcon(mPackageManager);
-                AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, isFavourite);
-                appView.setOnClickListener(new AppViewClickListener(appPackageName));
-                appView.setOnLongClickListener(new AppViewLongClickListener(appPackageName, isFavourite, requestedName));
-                appsLayout.addView(appView);
+                AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, appStatus.isFav());
+
+                AppViewListener listener = new AppViewListener(appPackageName, appStatus, requestedName);
+                appView.setOnClickListener(listener);
+                appView.setOnLongClickListener(listener);
+
+                mAppViewsLayout.addView(appView);
             }
+        }
+    }
+
+    private enum AppStatus {
+        FAVOURITE,
+        NORMAL,
+        WHICHEVER;
+
+        public AppStatus opposite() {
+            switch(this) {
+                case FAVOURITE: return NORMAL;
+                case NORMAL:    return FAVOURITE;
+            }
+            return WHICHEVER;
+        }
+
+        public boolean isFav() {
+            return this == AppStatus.FAVOURITE;
         }
     }
 
@@ -90,8 +119,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
             String requestedName = s.toString().toLowerCase().replace(" ", "");
-            addAppsToLayout(mAppViewsLayout, requestedName, true, true);
-            addAppsToLayout(mAppViewsLayout, requestedName, false,false);
+            addAppsToLayout(requestedName, AppStatus.WHICHEVER);
         }
 
         @Override
@@ -101,29 +129,14 @@ public class MainActivity extends AppCompatActivity {
         public void onTextChanged(CharSequence s, int start, int before, int count) {}
     }
 
-    private final class AppViewClickListener implements View.OnClickListener {
+    private final class AppViewListener implements View.OnLongClickListener, View.OnClickListener {
         private final String mAppPackageName;
-
-        private AppViewClickListener(String appPackageName) {
-            this.mAppPackageName = appPackageName;
-        }
-
-        @Override
-        public void onClick(View v) {
-            mAppNameInput.setText("");
-            Intent launchIntent = mPackageManager.getLaunchIntentForPackage(mAppPackageName);
-            startActivity(launchIntent);
-        }
-    }
-
-    private final class AppViewLongClickListener implements View.OnLongClickListener {
-        private final String mAppPackageName;
-        private final boolean mIsFavourite;
+        private final AppStatus mStatus;
         private final String mRequestedName;
 
-        private AppViewLongClickListener(String appPackageName, boolean isFavourite, String requestedName) {
+        private AppViewListener(String appPackageName, AppStatus status, String requestedName) {
             this.mAppPackageName = appPackageName;
-            this.mIsFavourite = isFavourite;
+            this.mStatus = status;
             this.mRequestedName = requestedName;
         }
 
@@ -131,11 +144,17 @@ public class MainActivity extends AppCompatActivity {
         public boolean onLongClick(View v) {
             getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
                     .edit()
-                    .putBoolean(mAppPackageName, !mIsFavourite)
+                    .putString(mAppPackageName, mStatus.opposite().toString())
                     .apply();
-            addAppsToLayout(mAppViewsLayout, mRequestedName, true, true);
-            addAppsToLayout(mAppViewsLayout, mRequestedName, false,false);
+            addAppsToLayout(mRequestedName, AppStatus.WHICHEVER);
             return true;
+        }
+
+        @Override
+        public void onClick(View v) {
+            mAppNameInput.setText("");
+            Intent launchIntent = mPackageManager.getLaunchIntentForPackage(mAppPackageName);
+            startActivity(launchIntent);
         }
     }
 
