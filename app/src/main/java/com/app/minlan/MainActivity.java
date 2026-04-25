@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String SHARED_APPS_PREFS  = "favourite_apps";
     public static final String SHARED_SETTINGS    = "settings";
     public static final String SETTINGS_DARK_ICONS= "dark_icons";
+    public static final String SETTINGS_TEXT_COLOR= "text_color";
 
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;

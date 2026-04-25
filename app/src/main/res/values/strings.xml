@@ -3,4 +3,5 @@
     <string name="hint_app_name">Search app…</string>
     <string name="minlan_settings">Minlan Settings</string>
     <string name="dark_icons">Dark Icons</string>
+    <string name="select_text_color">Select text color</string>
 </resources>
