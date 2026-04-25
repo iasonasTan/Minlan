@@ -24,6 +24,7 @@
         android:layout_height="wrap_content" />
 
     <ImageView
+        android:id="@+id/star_view"
         android:layout_weight="1"
         android:src="@drawable/star"
         android:scaleType="fitCenter"

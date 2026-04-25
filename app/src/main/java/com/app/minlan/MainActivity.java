@@ -20,7 +20,9 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 
+import com.app.minlan.settings.SettingsActivity;
 import com.app.minlan.view.AbstractAppView;
 import com.app.minlan.view.AppViewFactory;
 import com.google.android.material.textfield.TextInputEditText;
@@ -30,7 +32,9 @@ import java.util.List;
 import java.util.function.Function;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String SHARED_APPS_PREFS = "favourite_apps";
+    public static final String SHARED_APPS_PREFS  = "favourite_apps";
+    public static final String SHARED_SETTINGS    = "settings";
+    public static final String SETTINGS_DARK_ICONS= "dark_icons";
 
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;
@@ -64,6 +68,22 @@ public class MainActivity extends AppCompatActivity {
 
         ImageButton button = findViewById(R.id.clear_button);
         button.setOnClickListener(v -> mAppNameInput.setText(""));
+        button.setOnLongClickListener(v -> {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
+            return true;
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        ImageButton button = findViewById(R.id.clear_button);
+        Drawable drawableImage = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false) ?
+                AppCompatResources.getDrawable(this, R.drawable.clear_dark) :
+                AppCompatResources.getDrawable(this, R.drawable.clear);
+        button.setImageDrawable(drawableImage);
+        addAppsToLayout("", AppStatus.WHICHEVER);
     }
 
     private void addAppsToLayout(String requestedName, AppStatus status) {
@@ -80,17 +100,16 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
         for (ResolveInfo app : mApplicationsInfo) {
-            final String appName = app.loadLabel(mPackageManager).toString();
+            final String appName        = app.loadLabel(mPackageManager).toString();
             final String appPackageName = app.activityInfo.packageName;
-            final AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(appPackageName, "NORMAL"));
+            final AppStatus appStatus   = Enum.valueOf(AppStatus.class, preferences.getString(appPackageName, "NORMAL"));
+
             if (status == appStatus && compareName.apply(appName) && !appPackageName.equals(getPackageName())) {
                 Drawable icon = app.loadIcon(mPackageManager);
                 AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, appStatus.isFav());
-
                 AppViewListener listener = new AppViewListener(appPackageName, appStatus, requestedName);
                 appView.setOnClickListener(listener);
                 appView.setOnLongClickListener(listener);
-
                 mAppViewsLayout.addView(appView);
             }
         }
