@@ -4,31 +4,31 @@
     android:orientation="horizontal"
     android:layout_marginBottom="15dp"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="50dp">
 
     <ImageView
         android:layout_weight="2"
         android:layout_marginEnd="7dp"
         android:id="@+id/icon_view"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="match_parent"
         tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/name_view"
+        android:layout_gravity="center"
         android:textSize="30sp"
         android:layout_weight="10"
-        android:layout_gravity="center"
         android:layout_width="0dp"
         android:maxLines="1"
         android:layout_height="wrap_content" />
 
     <ImageView
-        android:layout_gravity="center"
         android:layout_weight="1"
         android:src="@drawable/star"
+        android:scaleType="fitCenter"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         tools:ignore="ContentDescription" />
 
 </LinearLayout>
