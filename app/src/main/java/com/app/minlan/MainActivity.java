@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -84,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             final String appName = app.loadLabel(mPackageManager).toString();
             final String appPackageName = app.activityInfo.packageName;
             final AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(appPackageName, "NORMAL"));
-            if (status == appStatus && compareName.apply(appName)) {
+            if (status == appStatus && compareName.apply(appName) && !appPackageName.equals(getPackageName())) {
                 Drawable icon = app.loadIcon(mPackageManager);
                 AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, appStatus.isFav());
 
