@@ -1,0 +1,11 @@
+Pair device:
+adb pair IP:PORT
+
+Connect to device:
+adb connect IP:PORT (main port)
+
+Install:
+adb install -r app.apk
+
+Start:
+adb shell am start -n package/.MainActivity

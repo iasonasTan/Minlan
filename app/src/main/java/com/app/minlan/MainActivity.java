@@ -74,6 +74,8 @@ public class MainActivity extends AppCompatActivity {
             startActivity(settingsIntent);
             return true;
         });
+
+        new Greeter().showHints(this);
     }
 
     @Override

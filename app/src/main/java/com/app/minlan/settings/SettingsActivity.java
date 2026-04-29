@@ -49,7 +49,10 @@ public class SettingsActivity extends AppCompatActivity {
             }
             @Override public void onCancel(AmbilWarnaDialog dialog) {}
         };
-        final int defaultColor = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getInt(SETTINGS_TEXT_COLOR, Color.WHITE);
-        selectColorBtn.setOnClickListener(v -> new AmbilWarnaDialog(this, defaultColor, false, listener).show());
+        final int defaultColor = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                                        .getInt(SETTINGS_TEXT_COLOR, Color.WHITE);
+        selectColorBtn.setOnClickListener(v -> 
+                new AmbilWarnaDialog(this, defaultColor, false, listener).show()
+        );
     }
 }

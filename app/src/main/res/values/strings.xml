@@ -1,7 +1,11 @@
 <resources>
-    <string name="app_name">Minlan</string>
+    <string name="ok" translatable="false">Ok</string>
+    <string name="app_name" translatable="false">Minlan</string>
+    
     <string name="hint_app_name">Search app…</string>
     <string name="minlan_settings">Minlan Settings</string>
     <string name="dark_icons">Dark Icons</string>
     <string name="select_text_color">Select text color</string>
+    <string name="dyk">Did you know?</string>
+    <string name="dyk_settings">You can acess settings by long pressing the clear button.</string>
 </resources>
