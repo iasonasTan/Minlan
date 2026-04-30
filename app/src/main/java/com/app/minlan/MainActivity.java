@@ -26,6 +26,7 @@ import com.app.minlan.settings.SettingsActivity;
 import com.app.minlan.view.AbstractAppView;
 import com.app.minlan.view.AppViewFactory;
 import com.google.android.material.textfield.TextInputEditText;
+import com.app.minlan.apps.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -94,6 +95,12 @@ public class MainActivity extends AppCompatActivity {
                 requestedName.toLowerCase().replace(" ", "")
         );
 
+        if(status == AppStatus.HIDDEN) {
+            mAppViewsLayout.removeAllViews();
+            addAppsToLayout(requestedName, AppStatus.NORMAL);
+            return;
+        }
+
         if(status == AppStatus.WHICHEVER) {
             mAppViewsLayout.removeAllViews();
             addAppsToLayout(requestedName, AppStatus.FAVOURITE);
@@ -101,16 +108,24 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        AppFilter appFilter = new AppFilter(this);
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
         for (ResolveInfo app : mApplicationsInfo) {
             final String appName        = app.loadLabel(mPackageManager).toString();
             final String appPackageName = app.activityInfo.packageName;
             final AppStatus appStatus   = Enum.valueOf(AppStatus.class, preferences.getString(appPackageName, "NORMAL"));
+            final boolean appIsHidden   = appFilter.getHidden().contains(appPackageName)&&requestedName.equals("@hidden");
 
-            if (status == appStatus && compareName.apply(appName) && !appPackageName.equals(getPackageName())) {
+            if ((status == appStatus &&
+                    compareName.apply(appName) && 
+                    !appPackageName.equals(getPackageName()) &&
+                    appFilter.check(appPackageName)
+                )||
+                appIsHidden) {
+
                 Drawable icon = app.loadIcon(mPackageManager);
-                AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, appStatus.isFav());
-                AppViewListener listener = new AppViewListener(appPackageName, appStatus, requestedName);
+                AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, appStatus.isFav(), appIsHidden);
+                AppViewListener listener = new AppViewListener(appPackageName, appStatus, requestedName, appIsHidden);
                 appView.setOnClickListener(listener);
                 appView.setOnLongClickListener(listener);
                 mAppViewsLayout.addView(appView);
@@ -121,12 +136,14 @@ public class MainActivity extends AppCompatActivity {
     private enum AppStatus {
         FAVOURITE,
         NORMAL,
-        WHICHEVER;
+        WHICHEVER,
+        HIDDEN;
 
         public AppStatus opposite() {
             switch(this) {
                 case FAVOURITE: return NORMAL;
                 case NORMAL:    return FAVOURITE;
+                case HIDDEN:    return NORMAL;
             }
             return WHICHEVER;
         }
@@ -140,7 +157,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void afterTextChanged(Editable s) {
             String requestedName = s.toString().toLowerCase().replace(" ", "");
-            addAppsToLayout(requestedName, AppStatus.WHICHEVER);
+            AppStatus appStatus = requestedName.equals("@hidden") ?
+                    AppStatus.HIDDEN :
+                    AppStatus.WHICHEVER;
+            addAppsToLayout(requestedName, appStatus);
         }
 
         @Override
@@ -151,22 +171,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private final class AppViewListener implements View.OnLongClickListener, View.OnClickListener {
-        private final String mAppPackageName;
+        private final String mAppPackageName, mRequestedName;
         private final AppStatus mStatus;
-        private final String mRequestedName;
+        private final boolean mIsAppHidden;
 
-        private AppViewListener(String appPackageName, AppStatus status, String requestedName) {
+        private AppViewListener(String appPackageName, AppStatus status, String requestedName, boolean isHidden) {
             this.mAppPackageName = appPackageName;
-            this.mStatus = status;
-            this.mRequestedName = requestedName;
+            this.mStatus         = status;
+            this.mRequestedName  = requestedName;
+            this.mIsAppHidden    = isHidden;
         }
 
         @Override
         public boolean onLongClick(View v) {
-            getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
-                    .edit()
-                    .putString(mAppPackageName, mStatus.opposite().toString())
-                    .apply();
+            // getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
+            //         .edit()
+            //         .putString(mAppPackageName, mStatus.opposite().toString())
+            //         .apply();
+            AppHider appHider = new AppHider();
+            if(!mIsAppHidden)
+                appHider.hideApp(MainActivity.this, mAppPackageName);
+            else
+                appHider.showApp(MainActivity.this, mAppPackageName);
+
             addAppsToLayout(mRequestedName, AppStatus.WHICHEVER);
             return true;
         }
