@@ -49,7 +49,7 @@ public abstract class AbstractAppView extends LinearLayout {
         );
         mNameView.setText(resolveInfo.loadLabel(packageManager));
 
-        AppViewListener avl = new AppViewListener(resolveInfo.resolvePackageName);
+        AppViewListener avl = new AppViewListener(resolveInfo.activityInfo.packageName);
         setOnLongClickListener(avl);
         setOnClickListener(avl);
     }
