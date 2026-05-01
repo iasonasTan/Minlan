@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         });
 
         new Greeter(this).showHints();
+        new VersionChecker(this).checkVersionAsynchronously();
     }
 
     @Override
