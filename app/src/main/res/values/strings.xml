@@ -15,4 +15,5 @@
     <string name="unhide_app">Unhide app</string>
     <string name="dyk_hidden_apps">You can view hidden apps by searching for \'@hidden\' in the searchbar.</string>
     <string name="dyk_app_menu">You can long-press an app to open it\'s menu.</string>
+    <string name="show_hints">Show hints</string>
 </resources>

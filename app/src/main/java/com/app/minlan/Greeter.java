@@ -18,6 +18,10 @@ public final class Greeter {
         if(!shown) { showDialog1(); }
     }
 
+    public void forceShow() {
+        showDialog1();
+    }
+
     private void showDialog1() {
         new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.dyk)

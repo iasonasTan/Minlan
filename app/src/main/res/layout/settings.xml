@@ -37,6 +37,13 @@
                 android:text="@string/select_text_color"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/show_hints"
+                android:textSize="15sp"
+                android:text="@string/show_hints"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
         </LinearLayout>
     </ScrollView>
 

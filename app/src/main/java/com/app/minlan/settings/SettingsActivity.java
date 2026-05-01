@@ -14,6 +14,7 @@ import android.widget.CheckBox;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.app.minlan.Greeter;
 import com.app.minlan.R;
 
 import yuku.ambilwarna.AmbilWarnaDialog;
@@ -54,5 +55,9 @@ public class SettingsActivity extends AppCompatActivity {
         selectColorBtn.setOnClickListener(v -> 
                 new AmbilWarnaDialog(this, defaultColor, false, listener).show()
         );
+
+        findViewById(R.id.show_hints).setOnClickListener(v -> {
+            new Greeter(this).forceShow();
+        });
     }
 }
