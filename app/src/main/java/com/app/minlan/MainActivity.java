@@ -7,10 +7,12 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -32,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ReloadCallback {
     public static final String SHARED_APPS_PREFS  = "favourite_apps";
     public static final String SHARED_SETTINGS    = "settings";
     public static final String SETTINGS_DARK_ICONS= "dark_icons";
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;
-    private TextInputEditText mAppNameInput;
+    private TextInputEditText mInput;
     private ViewGroup mAppViewsLayout;
 
     @Override
@@ -64,12 +66,14 @@ public class MainActivity extends AppCompatActivity {
         mAppViewsLayout = findViewById(R.id.app_container);
         addAppsToLayout("", AppStatus.WHICHEVER);
 
-        mAppNameInput = findViewById(R.id.app_name_input);
-        mAppNameInput.addTextChangedListener(new InputTextChangeListener());
-        mAppNameInput.setOnEditorActionListener(new InputActionListener());
+        mInput = findViewById(R.id.app_name_input);
+
+        InputListener il = new InputListener();
+        mInput.addTextChangedListener(il);
+        mInput.setOnEditorActionListener(il);
 
         ImageButton button = findViewById(R.id.clear_button);
-        button.setOnClickListener(v -> mAppNameInput.setText(""));
+        button.setOnClickListener(v -> mInput.setText(""));
         button.setOnLongClickListener(v -> {
             Intent settingsIntent = new Intent(this, SettingsActivity.class);
             startActivity(settingsIntent);
@@ -83,14 +87,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         ImageButton button = findViewById(R.id.clear_button);
-        Drawable drawableImage = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false) ?
-                AppCompatResources.getDrawable(this, R.drawable.clear_dark) :
-                AppCompatResources.getDrawable(this, R.drawable.clear);
+        final int resourceId = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false) ?
+                R.drawable.clear_dark : R.drawable.clear;
+        Drawable drawableImage = AppCompatResources.getDrawable(this, resourceId);
         button.setImageDrawable(drawableImage);
         addAppsToLayout("", AppStatus.WHICHEVER);
     }
 
+    @Override
+    public void reload() {
+        CharSequence charSeq = mInput.getText();
+        if(charSeq != null) {
+            String requestedName = charSeq.toString().toLowerCase().replace(" ", "");
+            AppStatus appStatus = requestedName.equals("@hidden") ?
+                    AppStatus.HIDDEN :
+                    AppStatus.WHICHEVER;
+            addAppsToLayout(requestedName, appStatus);
+        }
+    }
+
     private void addAppsToLayout(String requestedName, AppStatus status) {
+        Log.d("app_manager", "Adding apps to layout, RequestedName: "+requestedName+", AppStatus: "+status);
         Function<String, Boolean> compareName = name -> name.toLowerCase().replace(" ", "").contains(
                 requestedName.toLowerCase().replace(" ", "")
         );
@@ -114,46 +131,28 @@ public class MainActivity extends AppCompatActivity {
             final String appName        = app.loadLabel(mPackageManager).toString();
             final String appPackageName = app.activityInfo.packageName;
             final AppStatus appStatus   = Enum.valueOf(AppStatus.class, preferences.getString(appPackageName, "NORMAL"));
-            final boolean appIsHidden   = appFilter.getHidden().contains(appPackageName)&&requestedName.equals("@hidden");
 
-            if ((status == appStatus &&
-                    compareName.apply(appName) && 
-                    !appPackageName.equals(getPackageName()) &&
-                    appFilter.check(appPackageName)
-                )||
-                appIsHidden) {
+            final boolean searchingForHidden = appFilter.isHidden(appPackageName) && requestedName.equals("@hidden");
+            final boolean appMatched         = status == appStatus && compareName.apply(appName) &&
+                    !appPackageName.equals(getPackageName()) && !appFilter.isHidden(appPackageName);
 
-                Drawable icon = app.loadIcon(mPackageManager);
-                AbstractAppView appView = AppViewFactory.createAppView(this, appName, icon, appStatus.isFav(), appIsHidden);
-                AppViewListener listener = new AppViewListener(appPackageName, appStatus, requestedName, appIsHidden);
-                appView.setOnClickListener(listener);
-                appView.setOnLongClickListener(listener);
+            if (appMatched||searchingForHidden) {
+                AbstractAppView appView = AppViewFactory.createAppView(this, app, this, appStatus.isFav(), searchingForHidden);
                 mAppViewsLayout.addView(appView);
             }
         }
     }
 
-    private enum AppStatus {
-        FAVOURITE,
-        NORMAL,
-        WHICHEVER,
-        HIDDEN;
-
-        public AppStatus opposite() {
-            switch(this) {
-                case FAVOURITE: return NORMAL;
-                case NORMAL:    return FAVOURITE;
-                case HIDDEN:    return NORMAL;
+    private final class InputListener implements TextView.OnEditorActionListener, TextWatcher {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            if(actionId == EditorInfo.IME_ACTION_DONE) {
+                InputMethodManager inputMethodManager = getSystemService(InputMethodManager.class);
+                inputMethodManager.hideSoftInputFromWindow(mInput.getWindowToken(), 0);
             }
-            return WHICHEVER;
+            return true;
         }
 
-        public boolean isFav() {
-            return this == AppStatus.FAVOURITE;
-        }
-    }
-
-    private final class InputTextChangeListener implements TextWatcher {
         @Override
         public void afterTextChanged(Editable s) {
             String requestedName = s.toString().toLowerCase().replace(" ", "");
@@ -168,52 +167,5 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {}
-    }
-
-    private final class AppViewListener implements View.OnLongClickListener, View.OnClickListener {
-        private final String mAppPackageName, mRequestedName;
-        private final AppStatus mStatus;
-        private final boolean mIsAppHidden;
-
-        private AppViewListener(String appPackageName, AppStatus status, String requestedName, boolean isHidden) {
-            this.mAppPackageName = appPackageName;
-            this.mStatus         = status;
-            this.mRequestedName  = requestedName;
-            this.mIsAppHidden    = isHidden;
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            // getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
-            //         .edit()
-            //         .putString(mAppPackageName, mStatus.opposite().toString())
-            //         .apply();
-            AppHider appHider = new AppHider();
-            if(!mIsAppHidden)
-                appHider.hideApp(MainActivity.this, mAppPackageName);
-            else
-                appHider.showApp(MainActivity.this, mAppPackageName);
-
-            addAppsToLayout(mRequestedName, AppStatus.WHICHEVER);
-            return true;
-        }
-
-        @Override
-        public void onClick(View v) {
-            mAppNameInput.setText("");
-            Intent launchIntent = mPackageManager.getLaunchIntentForPackage(mAppPackageName);
-            startActivity(launchIntent);
-        }
-    }
-
-    private final class InputActionListener implements TextView.OnEditorActionListener {
-        @Override
-        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            if(actionId == EditorInfo.IME_ACTION_DONE){
-                InputMethodManager inputMethodManager = getSystemService(InputMethodManager.class);
-                inputMethodManager.hideSoftInputFromWindow(mAppNameInput.getWindowToken(), 0);
-            }
-            return true;
-        }
     }
 }

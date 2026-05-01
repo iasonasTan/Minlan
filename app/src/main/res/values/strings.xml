@@ -1,5 +1,5 @@
 <resources>
-    <string name="ok" translatable="false">Ok</string>
+    <string name="ok" translatable="false">OK</string>
     <string name="app_name" translatable="false">Minlan</string>
     
     <string name="hint_app_name">Search app…</string>
@@ -8,4 +8,8 @@
     <string name="select_text_color">Select text color</string>
     <string name="dyk">Did you know?</string>
     <string name="dyk_settings">You can access settings by long pressing the clear button.</string>
+    <string name="mark_favourite">Mark Favourite</string>
+    <string name="hide_app">Hide App</string>
+    <string name="mark_unfavourite">Mark as not favourite</string>
+    <string name="unhide_app">Unhide app</string>
 </resources>

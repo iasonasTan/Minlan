@@ -22,7 +22,7 @@ public final class AppFilter {
         return Collections.unmodifiableList(mHiddenPackages);
     }
 
-    public boolean check(String pkg) {
-        return !mHiddenPackages.contains(pkg);
+    public boolean isHidden(String pkg) {
+        return mHiddenPackages.contains(pkg);
     }
 }
