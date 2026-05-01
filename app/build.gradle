@@ -38,5 +38,5 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation libs.ambilwarna
-    implementation 'com.github.iasonasTan:VersionCheckerLib:1.0.0'
+    implementation 'com.github.iasonasTan:VersionCheckerLib:v2.0.0'
 }
