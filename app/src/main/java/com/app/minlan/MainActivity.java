@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
             return true;
         });
 
-        new Greeter().showHints(this);
+        new Greeter(this).showHints();
     }
 
     @Override

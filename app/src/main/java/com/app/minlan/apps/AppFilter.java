@@ -10,8 +10,7 @@ public final class AppFilter {
     private final List<String> mHiddenPackages;
 
     public AppFilter(Context context) {
-        final String hiddenPackagesUnsplit = context
-                .getSharedPreferences("apps", Context.MODE_PRIVATE)
+        final String hiddenPackagesUnsplit = context.getSharedPreferences("apps", Context.MODE_PRIVATE)
                 .getString("hidden_apps", "");
         mHiddenPackages = Collections.unmodifiableList(
             Arrays.asList(hiddenPackagesUnsplit.split(","))
