@@ -1,6 +1,8 @@
 # Minimal Launcher
 This is a simple android launcher.
 
+This project requires `adb` (Android Device Bridge) installed.
+
 It can currently change icon color themes and font color.
 
 To access the settings you need to long press the "clear" button.

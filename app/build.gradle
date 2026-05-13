@@ -11,7 +11,7 @@ android {
         minSdk 29
         targetSdk 36
         versionCode 5
-        versionName "5.0"
+        versionName "5.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,6 +25,20 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+task deploy {
+    dependsOn 'assembleDebug'
+    doLast {
+        exec {
+            commandLine 'adb', 'install', '-r',
+                './build/outputs/apk/debug/app-debug.apk'
+        }
+        exec {
+            commandLine 'adb', 'shell', 'am', 'start',
+                '-n', 'com.app.minlan/.MainActivity'
+        }
     }
 }
 
