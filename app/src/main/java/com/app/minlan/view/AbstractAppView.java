@@ -65,6 +65,7 @@ public abstract class AbstractAppView extends LinearLayout {
             Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.parse("package:" + resolveInfo.activityInfo.packageName));
             getContext().startActivity(intent);
+            popupHiderCallback.hidePopup();
         });
     }
 
