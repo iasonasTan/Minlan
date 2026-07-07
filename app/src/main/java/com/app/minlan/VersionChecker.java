@@ -11,7 +11,7 @@ public class VersionChecker extends AbstractVersionChecker {
 
     @Override
     protected String NewVersionWebpageUrl() {
-        return "https://github.com/iasonasTan/MinimalLauncher/releases";
+        return "https://github.com/iasonasTan/Minlan/releases";
     }
 
     @Override
