@@ -17,6 +17,9 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import android.net.Uri;
+import android.provider.Settings;
+
 import androidx.core.content.res.ResourcesCompat;
 
 import com.app.minlan.R;
@@ -56,7 +59,15 @@ public abstract class AbstractAppView extends LinearLayout {
 
     protected abstract int getMenuLayoutId();
     protected abstract void inflateLayout(Context context);
-    protected abstract void addListenersToPopup(View popupView, PopupHider popupHiderCallback);
+
+    protected void addListenersToPopup(View popupView, PopupHider popupHiderCallback) {
+        popupView.findViewById(R.id.info).setOnClickListener(v -> {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + resolveInfo.activityInfo.packageName));
+            getContext().startActivity(intent);
+            popupHiderCallback.hidePopup();
+        });
+    }
 
     @Override
     public final void setOnClickListener(View.OnClickListener listener) {

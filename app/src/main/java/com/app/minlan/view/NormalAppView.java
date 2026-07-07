@@ -31,6 +31,7 @@ public class NormalAppView extends AbstractAppView {
 
     @Override
     protected void addListenersToPopup(View popupView, PopupHider hideCallback) {
+        super.addListenersToPopup(popupView, hideCallback);
         popupView.findViewById(R.id.mark_favourite).setOnClickListener(v -> {
             getContext().getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE)
                     .edit()

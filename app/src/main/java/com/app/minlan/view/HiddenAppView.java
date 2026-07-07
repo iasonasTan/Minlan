@@ -41,6 +41,7 @@ public class HiddenAppView extends AbstractAppView {
 
     @Override
     protected void addListenersToPopup(View popupView, PopupHider hideCallback) {
+        super.addListenersToPopup(popupView, hideCallback);
         popupView.findViewById(R.id.unhide_app).setOnClickListener(v -> {
             new AppHider().showApp(getContext(), resolveInfo.activityInfo.packageName);
             hideCallback.hidePopup();
