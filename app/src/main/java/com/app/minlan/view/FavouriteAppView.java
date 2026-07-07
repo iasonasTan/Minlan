@@ -20,11 +20,16 @@ import com.app.minlan.apps.AppHider;
 
 @SuppressLint("ViewConstructor")
 public class FavouriteAppView extends AbstractAppView {
-    public FavouriteAppView(Context context, ResolveInfo resoleInfo, ReloadCallback reloadCallback) {
-        super(context, resoleInfo, reloadCallback);
-        if(context.getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false)) {
+    public FavouriteAppView(Context context, ReloadCallback reloadCallback) {
+        super(context, reloadCallback);
+    }
+
+    @Override
+    public void bind(ResolveInfo resolveInfo) {
+        super.bind(resolveInfo);
+        if(getContext().getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false)) {
             ImageView imageView = findViewById(R.id.star_view);
-            imageView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.star_dark));
+            imageView.setImageDrawable(AppCompatResources.getDrawable(getContext(), R.drawable.star_dark));
         }
     }
 

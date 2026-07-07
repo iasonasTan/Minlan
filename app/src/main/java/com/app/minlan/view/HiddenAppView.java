@@ -1,7 +1,6 @@
 package com.app.minlan.view;
 
 import static com.app.minlan.MainActivity.SETTINGS_DARK_ICONS;
-import static com.app.minlan.MainActivity.SHARED_APPS_PREFS;
 import static com.app.minlan.MainActivity.SHARED_SETTINGS;
 
 import android.annotation.SuppressLint;
@@ -13,19 +12,22 @@ import android.widget.ImageView;
 
 import androidx.appcompat.content.res.AppCompatResources;
 
-import com.app.minlan.AppStatus;
-import com.app.minlan.MainActivity;
 import com.app.minlan.R;
 import com.app.minlan.ReloadCallback;
 import com.app.minlan.apps.AppHider;
 
 @SuppressLint("ViewConstructor")
 public class HiddenAppView extends AbstractAppView {
-    public HiddenAppView(Context context, ResolveInfo resoleInfo, ReloadCallback reloadCallback) {
-        super(context, resoleInfo, reloadCallback);
-        if(context.getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false)) {
+    public HiddenAppView(Context context, ReloadCallback reloadCallback) {
+        super(context, reloadCallback);
+    }
+
+    @Override
+    public void bind(ResolveInfo resolveInfo) {
+        super.bind(resolveInfo);
+        if(getContext().getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false)) {
             ImageView imageView = findViewById(R.id.eye_view);
-            imageView.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.eye_dark));
+            imageView.setImageDrawable(AppCompatResources.getDrawable(getContext(), R.drawable.eye_dark));
         }
     }
 

@@ -27,34 +27,36 @@ import com.app.minlan.ReloadCallback;
 
 @SuppressLint("ViewConstructor")
 public abstract class AbstractAppView extends LinearLayout {
-    private final TextView mNameView;
-    private final ImageView mIconView;
+    protected final TextView mNameView;
+    protected final ImageView mIconView;
 
-    protected final ResolveInfo resolveInfo;
+    protected ResolveInfo resolveInfo;
     protected final ReloadCallback reloadCallback;
 
-    public AbstractAppView(Context context, ResolveInfo resolveInfo, ReloadCallback reloadCallback) {
+    public AbstractAppView(Context context, ReloadCallback reloadCallback) {
         super(context);
-        PackageManager packageManager = context.getPackageManager();
-
-        this.resolveInfo    = resolveInfo;
         this.reloadCallback = reloadCallback;
 
         inflateLayout(context);
 
         mIconView = findViewById(R.id.icon_view);
-        mIconView.setImageDrawable(resolveInfo.loadIcon(packageManager));
-
         mNameView = findViewById(R.id.name_view);
+
+        AppViewListener avl = new AppViewListener();
+        setOnLongClickListener(avl);
+        setOnClickListener(avl);
+    }
+
+    public void bind(ResolveInfo resolveInfo) {
+        this.resolveInfo = resolveInfo;
+        PackageManager packageManager = getContext().getPackageManager();
+
+        mIconView.setImageDrawable(resolveInfo.loadIcon(packageManager));
         mNameView.setTextColor(
-                context.getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                getContext().getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
                         .getInt(SETTINGS_TEXT_COLOR, Color.WHITE)
         );
         mNameView.setText(resolveInfo.loadLabel(packageManager));
-
-        AppViewListener avl = new AppViewListener(resolveInfo.activityInfo.packageName);
-        setOnLongClickListener(avl);
-        setOnClickListener(avl);
     }
 
     protected abstract int getMenuLayoutId();
@@ -84,12 +86,6 @@ public abstract class AbstractAppView extends LinearLayout {
     }
 
     private final class AppViewListener implements View.OnLongClickListener, View.OnClickListener {
-        private final String mAppPackageName;
-
-        private AppViewListener(String appPackageName) {
-            this.mAppPackageName = appPackageName;
-        }
-
         @Override
         public boolean onLongClick(View v) {
             View popupView = LayoutInflater.from(getContext()).inflate(getMenuLayoutId(), null);
@@ -109,7 +105,7 @@ public abstract class AbstractAppView extends LinearLayout {
         public void onClick(View v) {
             Intent launchIntent = getContext()
                     .getPackageManager()
-                    .getLaunchIntentForPackage(mAppPackageName);
+                    .getLaunchIntentForPackage(resolveInfo.activityInfo.packageName);
             getContext().startActivity(launchIntent);
         }
     }

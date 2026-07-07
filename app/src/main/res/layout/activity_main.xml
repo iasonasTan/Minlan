@@ -37,19 +37,11 @@
 
     </LinearLayout>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/app_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <LinearLayout
-            android:id="@+id/app_container"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <!-- VIEWS ADDED WITH JAVA -->
-        </LinearLayout>
-    </ScrollView>
+        android:layout_height="match_parent"
+        android:paddingTop="10dp"
+        android:clipToPadding="false" />
 
 </LinearLayout>

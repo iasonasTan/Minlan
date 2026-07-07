@@ -11,7 +11,7 @@ android {
         minSdk 29
         targetSdk 36
         versionCode 5
-        versionName "5.6"
+        versionName "5.7"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,16 +28,16 @@ android {
     }
 }
 
-task deploy {
+tasks.register('deploy') {
     dependsOn 'assembleDebug'
     doLast {
         exec {
             commandLine 'adb', 'install', '-r',
-                './build/outputs/apk/debug/app-debug.apk'
+                    './build/outputs/apk/debug/app-debug.apk'
         }
         exec {
             commandLine 'adb', 'shell', 'am', 'start',
-                '-n', 'com.app.minlan/.MainActivity'
+                    '-n', 'com.app.minlan/.MainActivity'
         }
     }
 }

@@ -4,7 +4,6 @@ import static com.app.minlan.MainActivity.SHARED_APPS_PREFS;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.ResolveInfo;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -15,8 +14,8 @@ import com.app.minlan.apps.AppHider;
 
 @SuppressLint("ViewConstructor")
 public class NormalAppView extends AbstractAppView {
-    public NormalAppView(Context context, ResolveInfo resoleInfo, ReloadCallback reloadCallback) {
-        super(context, resoleInfo, reloadCallback);
+    public NormalAppView(Context context, ReloadCallback reloadCallback) {
+        super(context, reloadCallback);
     }
 
     @Override
