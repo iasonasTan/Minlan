@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.net.Uri;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +18,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-
-import android.net.Uri;
-import android.provider.Settings;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -96,9 +95,25 @@ public abstract class AbstractAppView extends LinearLayout {
                     true
             );
             addListenersToPopup(popupView, popup::dismiss);
-            popup.setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.app_menu_backgound, getContext().getTheme()));
-            popup.showAsDropDown(mNameView, 0, 0);
+            popup.setBackgroundDrawable(
+                    ResourcesCompat.getDrawable(getResources(), R.drawable.app_menu_backgound, getContext().getTheme())
+            );
+            final View anchor = mIconView; // On which view the PopupWindow will be based.
+            popupView.measure(MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED); // Force popupView to calculate its bounds.
+
+            int windowOffsetY = getWindowOffsetY(anchor, popupView);
+            popup.showAsDropDown(anchor, 0, windowOffsetY);
             return true;
+        }
+
+        private int getWindowOffsetY(View anchor, View popupView) {
+            // Get anchor location (popupView doesn't have location yet so we use anchor's location instead)
+            final int[] anchorLocation = new int[2];
+            anchor.getLocationOnScreen(anchorLocation);
+
+            int popupWindowBottom = (anchorLocation[1] +anchor.getHeight()) +popupView.getMeasuredHeight(); // Calculate where the bottom of the popupView be
+            int rootHeight = getRootView().getHeight(); // Get height of screen (root view of app has the same height as the screen since launcher are always full screen)
+            return Math.min(0, rootHeight -popupWindowBottom -100/*extra margin*/); // Calculate difference between bottom of window and bottom of screen and if it's negative, return it, return 0 otherwise.
         }
 
         @Override
