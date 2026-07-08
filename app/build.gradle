@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-def versionFile = file("../latest_version.txt")
+def versionFile = file("../version.txt")
 def versionString = versionFile.exists() ? versionFile.text.trim() : "1.0"
 
 android {
@@ -14,7 +14,7 @@ android {
         minSdk 29
         targetSdk 36
 
-        // Change version code/name from file ../latest_version.txt
+        // Change version code/name from file ../version.txt
         versionCode versionString.split('\\.')[0].toInteger()
         versionName versionString
 
@@ -56,5 +56,7 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
     implementation libs.ambilwarna
+
+    //noinspection UseTomlInstead
     implementation 'com.github.iasonasTan:VersionCheckerLib:v2.0.0'
 }

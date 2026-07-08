@@ -4,7 +4,6 @@ import android.content.Context;
 import com.app.minlan.ReloadCallback;
 
 public final class AppViewFactory {
-
     public static final int TYPE_NORMAL = 0;
     public static final int TYPE_FAVOURITE = 1;
     public static final int TYPE_HIDDEN = 2;

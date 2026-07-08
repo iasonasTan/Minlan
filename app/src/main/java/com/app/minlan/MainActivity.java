@@ -6,11 +6,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.provider.AlarmClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +21,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
+import android.widget.TextClock;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -36,11 +40,13 @@ import com.app.minlan.apps.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements ReloadCallback {
     public static final String SHARED_APPS_PREFS  = "favourite_apps";
     public static final String SHARED_SETTINGS    = "settings";
     public static final String SETTINGS_DARK_ICONS= "dark_icons";
+    public static final String SETTINGS_SHOW_CLOCK= "show_clock";
     public static final String SETTINGS_TEXT_COLOR= "text_color";
 
     private List<ResolveInfo> mApplicationsInfo;
@@ -76,10 +82,13 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
 
         mInput = findViewById(R.id.app_name_input);
 
-        InputListener il = new InputListener();
-        mInput.addTextChangedListener(il);
-        mInput.setOnEditorActionListener(il);
+        setListeners();
 
+        new Greeter(this).showHints();
+        new VersionChecker(this).checkVersionAsynchronously();
+    }
+
+    private void setListeners() {
         ImageButton button = findViewById(R.id.clear_button);
         button.setOnClickListener(v -> mInput.setText(""));
         button.setOnLongClickListener(v -> {
@@ -88,8 +97,36 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
             return true;
         });
 
-        new Greeter(this).showHints();
-        new VersionChecker(this).checkVersionAsynchronously();
+        InputListener il = new InputListener();
+        mInput.addTextChangedListener(il);
+        mInput.setOnEditorActionListener(il);
+    }
+
+    private void configClock() {
+        boolean showClock = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                .getBoolean(SETTINGS_SHOW_CLOCK, false);
+        if(showClock) {
+            TextClock clock = findViewById(R.id.clock);
+            clock.setVisibility(View.VISIBLE);
+            clock.setTextSize(TypedValue.COMPLEX_UNIT_SP, 100);
+            clock.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_UNIFORM);
+
+            clock.setOnClickListener(ignored -> {
+                try {
+                    Intent clockIntent = new Intent(AlarmClock.ACTION_SHOW_ALARMS);
+                    clockIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(clockIntent);
+                } catch (Exception e) {
+                    Log.e("MainActivity", "Could not launch clock app", e);
+                }
+            });
+
+            clock.setTextColor(getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                    .getInt(SETTINGS_TEXT_COLOR, Color.WHITE));
+        } else {
+            TextClock clock = findViewById(R.id.clock);
+            clock.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -100,7 +137,8 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
                 R.drawable.clear_dark : R.drawable.clear;
         Drawable drawableImage = AppCompatResources.getDrawable(this, resourceId);
         button.setImageDrawable(drawableImage);
-        addAppsToLayout(mInput.getText().toString(), AppStatus.WHICHEVER);
+        addAppsToLayout(Objects.requireNonNull(mInput.getText()).toString(), AppStatus.WHICHEVER);
+        configClock();
     }
 
     @Override
@@ -184,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         public void onTextChanged(CharSequence s, int start, int before, int count) {}
     }
 
-    public class AppViewAdapter extends RecyclerView.Adapter<AbstractAppViewHolder> {
+    public static class AppViewAdapter extends RecyclerView.Adapter<AbstractAppViewHolder> {
         private final List<AppDisplayItem> mApps = new ArrayList<>();
         private final ReloadCallback mCallback;
 
