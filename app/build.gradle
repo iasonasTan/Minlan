@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+def versionFile = file("../latest_version.txt")
+def versionString = versionFile.exists() ? versionFile.text.trim() : "1.0"
+
 android {
     namespace 'com.app.minlan'
     compileSdk = 37
@@ -10,8 +13,10 @@ android {
         applicationId "com.app.minlan"
         minSdk 29
         targetSdk 36
-        versionCode 5
-        versionName "5.7"
+
+        // Change version code/name from file ../latest_version.txt
+        versionCode versionString.split('\\.')[0].toInteger()
+        versionName versionString
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,7 +48,6 @@ tasks.register('deploy') {
 }
 
 dependencies {
-    implementation libs.material.v1120
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity
