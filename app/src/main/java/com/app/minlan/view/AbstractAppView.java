@@ -6,9 +6,11 @@ import static com.app.minlan.MainActivity.SHARED_SETTINGS;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Settings;
 import android.view.LayoutInflater;
@@ -23,6 +25,8 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.app.minlan.R;
 import com.app.minlan.ReloadCallback;
+
+import java.util.Optional;
 
 @SuppressLint("ViewConstructor")
 public abstract class AbstractAppView extends LinearLayout {
@@ -48,13 +52,33 @@ public abstract class AbstractAppView extends LinearLayout {
 
     public void bind(ResolveInfo resolveInfo) {
         this.resolveInfo = resolveInfo;
+        String packageName = resolveInfo.activityInfo.packageName;
         PackageManager packageManager = getContext().getPackageManager();
 
-        mIconView.setImageDrawable(resolveInfo.loadIcon(packageManager));
-        mNameView.setTextColor(
-                getContext().getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
-                        .getInt(SETTINGS_TEXT_COLOR, Color.WHITE)
-        );
+        String drawableKey;
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+            drawableKey = packageName + packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            drawableKey = packageName;
+        }
+
+        // Check cache
+        Optional<Drawable> iconOptional = IconCache.instance.getDrawable(drawableKey);
+        if(iconOptional.isPresent()) {
+            // If it's in cache, get it from there.
+            mIconView.setImageDrawable(iconOptional.get());
+        } else {
+            // If it's not in cache, create it and put it in cache.
+            Drawable drawable = resolveInfo.loadIcon(packageManager);
+            mIconView.setImageDrawable(drawable);
+            IconCache.instance.putDrawable(packageName, drawable);
+        }
+
+        int color = getContext()
+                .getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                .getInt(SETTINGS_TEXT_COLOR, Color.WHITE);
+        mNameView.setTextColor(color);
         mNameView.setText(resolveInfo.loadLabel(packageManager));
     }
 
