@@ -72,7 +72,7 @@ public abstract class AbstractAppView extends LinearLayout {
             // If it's not in cache, create it and put it in cache.
             Drawable drawable = resolveInfo.loadIcon(packageManager);
             mIconView.setImageDrawable(drawable);
-            IconCache.instance.putDrawable(packageName, drawable);
+            IconCache.instance.putDrawable(drawableKey, drawable);
         }
 
         int color = getContext()
