@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity implements ReloadCallback {
     public static final String SHARED_APPS_PREFS  = "favourite_apps";
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
 
         RecyclerView mAppViewsLayout = findViewById(R.id.app_container);
         mAppViewsLayout.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new AppViewAdapter(this);
+        mAdapter = new AppViewAdapter(this, str -> mInput.setText(""));
         mAppViewsLayout.setAdapter(mAdapter);
 
         addAppsToLayout("", AppStatus.WHICHEVER);
@@ -225,9 +226,11 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     public static class AppViewAdapter extends RecyclerView.Adapter<AbstractAppViewHolder> {
         private final List<AppDisplayItem> mApps = new ArrayList<>();
         private final ReloadCallback mCallback;
+        private final Consumer<String> mOnLaunchAppListener;
 
-        public AppViewAdapter(ReloadCallback callback) {
+        public AppViewAdapter(ReloadCallback callback, Consumer<String> onLaunchAppListener) {
             this.mCallback = callback;
+            this.mOnLaunchAppListener = onLaunchAppListener;
         }
 
         @SuppressLint("NotifyDataSetChanged")
@@ -248,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         @NonNull
         @Override
         public AbstractAppViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            AbstractAppView view = AppViewFactory.createAppView(parent.getContext(), mCallback, viewType);
+            AbstractAppView view = AppViewFactory.createAppView(parent.getContext(), mCallback, mOnLaunchAppListener, viewType);
             view.setLayoutParams(new RecyclerView.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT

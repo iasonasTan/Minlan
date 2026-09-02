@@ -16,10 +16,12 @@ import com.app.minlan.R;
 import com.app.minlan.ReloadCallback;
 import com.app.minlan.apps.AppHider;
 
+import java.util.function.Consumer;
+
 @SuppressLint("ViewConstructor")
 public class HiddenAppView extends AbstractAppView {
-    public HiddenAppView(Context context, ReloadCallback reloadCallback) {
-        super(context, reloadCallback);
+    public HiddenAppView(Context context, ReloadCallback reloadCallback, Consumer<String> onLaunchAppListener) {
+        super(context, reloadCallback, onLaunchAppListener);
     }
 
     @Override

@@ -27,6 +27,7 @@ import com.app.minlan.R;
 import com.app.minlan.ReloadCallback;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @SuppressLint("ViewConstructor")
 public abstract class AbstractAppView extends LinearLayout {
@@ -35,10 +36,12 @@ public abstract class AbstractAppView extends LinearLayout {
 
     protected ResolveInfo resolveInfo;
     protected final ReloadCallback reloadCallback;
+    protected final Consumer<String> onLaunchAppListener;
 
-    public AbstractAppView(Context context, ReloadCallback reloadCallback) {
+    public AbstractAppView(Context context, ReloadCallback reloadCallback, Consumer<String> onLaunchAppListener) {
         super(context);
         this.reloadCallback = reloadCallback;
+        this.onLaunchAppListener = onLaunchAppListener;
 
         inflateLayout(context);
 
@@ -142,6 +145,10 @@ public abstract class AbstractAppView extends LinearLayout {
 
         @Override
         public void onClick(View v) {
+            // Clear input
+            onLaunchAppListener.accept(resolveInfo.activityInfo.packageName);
+
+            // Launch app
             Intent launchIntent = getContext()
                     .getPackageManager()
                     .getLaunchIntentForPackage(resolveInfo.activityInfo.packageName);
