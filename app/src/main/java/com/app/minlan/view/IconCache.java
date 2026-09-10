@@ -28,7 +28,14 @@ public final class IconCache {
     };
 
     public Optional<Drawable> getDrawable(@NotNull String key) {
-        return Optional.ofNullable(mMemoryCache.get(key));
+        /*
+         * Cache is disabled!
+         * This line disables cache and forces application
+         * to load each app icon everytime.
+         * This is happening for testing.
+         */
+        return Optional.empty();
+        //return Optional.ofNullable(mMemoryCache.get(key));
     }
 
     public void putDrawable(@NotNull String key, Drawable value) {
