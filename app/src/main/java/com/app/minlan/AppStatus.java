@@ -6,6 +6,7 @@ public enum AppStatus {
     WHICHEVER,
     HIDDEN;
 
+    @SuppressWarnings("all")
     public AppStatus opposite() {
         switch (this) {
             case FAVOURITE:
@@ -14,11 +15,9 @@ public enum AppStatus {
                 return FAVOURITE;
             case HIDDEN:
                 return NORMAL;
+            case WHICHEVER:
+                return WHICHEVER;
         }
         return WHICHEVER;
-    }
-
-    public boolean isFav() {
-        return this == AppStatus.FAVOURITE;
     }
 }

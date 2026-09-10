@@ -68,15 +68,11 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> apps = mPackageManager.queryIntentActivities(intent, 0);
 
-        apps.sort((a, b) ->
-                a.loadLabel(mPackageManager).toString()
-                        .compareToIgnoreCase(b.loadLabel(mPackageManager).toString()));
-
         mApplicationsInfo = Collections.unmodifiableList(apps);
 
         RecyclerView mAppViewsLayout = findViewById(R.id.app_container);
         mAppViewsLayout.setLayoutManager(new LinearLayoutManager(this));
-        mAdapter = new AppViewAdapter(this, str -> mInput.setText(""));
+        mAdapter = new AppViewAdapter(this, str -> mInput.setText(""), this::runOnUiThread);
         mAppViewsLayout.setAdapter(mAdapter);
 
         addAppsToLayout("", AppStatus.WHICHEVER);
@@ -157,44 +153,40 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     private void addAppsToLayout(String requestedName, AppStatus status) {
         Log.d("app_manager", "Filtering apps, RequestedName: "+requestedName+", AppStatus: "+status);
 
-        List<AppDisplayItem> filteredApps = new ArrayList<>();
         String query = requestedName.toLowerCase().replace(" ", "");
-        
         AppFilter appFilter = new AppFilter(this);
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
 
+        mAdapter.clear();
+
         if (status == AppStatus.HIDDEN) {
-             for (ResolveInfo app : mApplicationsInfo) {
+            new AsyncIterator<>(mApplicationsInfo, app -> {
                 String pkg = app.activityInfo.packageName;
                 if (appFilter.isHidden(pkg)) {
-                    filteredApps.add(new AppDisplayItem(app, AppStatus.HIDDEN, true));
+                    mAdapter.addApp(new AppDisplayItem(app, AppStatus.HIDDEN, true), mPackageManager);
                 }
-            }
+            }).startProcessing();
         } else {
             // WHICHEVER case: show Favourites then Normals
             // First pass: Favourites
-            for (ResolveInfo app : mApplicationsInfo) {
-                String pkg = app.activityInfo.packageName;
-                String appName = app.loadLabel(mPackageManager).toString().toLowerCase().replace(" ", "");
-                AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(pkg, "NORMAL"));
-                
-                if (appStatus == AppStatus.FAVOURITE && appName.contains(query) && !pkg.equals(getPackageName()) && !appFilter.isHidden(pkg)) {
-                    filteredApps.add(new AppDisplayItem(app, AppStatus.FAVOURITE, false));
-                }
-            }
-            // Second pass: Normals
-            for (ResolveInfo app : mApplicationsInfo) {
-                String pkg = app.activityInfo.packageName;
-                String appName = app.loadLabel(mPackageManager).toString().toLowerCase().replace(" ", "");
-                AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(pkg, "NORMAL"));
-                
-                if (appStatus == AppStatus.NORMAL && appName.contains(query) && !pkg.equals(getPackageName()) && !appFilter.isHidden(pkg)) {
-                    filteredApps.add(new AppDisplayItem(app, AppStatus.NORMAL, false));
-                }
-            }
-        }
+            getLoop(preferences, AppStatus.FAVOURITE, query, appFilter).startProcessing();
 
-        mAdapter.setApps(filteredApps);
+            // Second pass: Normals
+            getLoop(preferences, AppStatus.NORMAL, query, appFilter).startProcessing();
+        }
+    }
+
+    @NonNull
+    private AsyncIterator<ResolveInfo> getLoop(SharedPreferences preferences, AppStatus requiredStatus, String query, AppFilter appFilter) {
+        return new AsyncIterator<>(mApplicationsInfo, app -> {
+            String pkg = app.activityInfo.packageName;
+            String appName = app.loadLabel(mPackageManager).toString().toLowerCase().replace(" ", "");
+            AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(pkg, "NORMAL"));
+
+            if (appStatus == requiredStatus && appName.contains(query) && !pkg.equals(getPackageName()) && !appFilter.isHidden(pkg)) {
+                mAdapter.addApp(new AppDisplayItem(app, requiredStatus, false), mPackageManager);
+            }
+        });
     }
 
     private final class InputListener implements TextView.OnEditorActionListener, TextWatcher {
@@ -224,20 +216,35 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     }
 
     public static class AppViewAdapter extends RecyclerView.Adapter<AbstractAppViewHolder> {
-        private final List<AppDisplayItem> mApps = new ArrayList<>();
+        private final List<AppDisplayItem> mApps = Collections.synchronizedList(new ArrayList<>());
         private final ReloadCallback mCallback;
         private final Consumer<String> mOnLaunchAppListener;
+        private final Consumer<Runnable> mUiThreadRunner;
 
-        public AppViewAdapter(ReloadCallback callback, Consumer<String> onLaunchAppListener) {
+        public AppViewAdapter(ReloadCallback callback, Consumer<String> onLaunchAppListener, Consumer<Runnable> uiThreadRunner) {
             this.mCallback = callback;
             this.mOnLaunchAppListener = onLaunchAppListener;
+            this.mUiThreadRunner = uiThreadRunner;
         }
 
         @SuppressLint("NotifyDataSetChanged")
-        public void setApps(List<AppDisplayItem> apps) {
+        public void addApp(AppDisplayItem app, PackageManager packageManager) {
+            mApps.add(app);
+            mApps.sort((a, b) -> {
+                // If the app is favourite, return it.
+                if(a.getStatus() == AppStatus.FAVOURITE)
+                    return -1;
+                if(b.getStatus() == AppStatus.FAVOURITE)
+                    return +1;
+                // Compare strings otherwise
+                return a.getResolveInfo().loadLabel(packageManager).toString()
+                        .compareToIgnoreCase(b.getResolveInfo().loadLabel(packageManager).toString());
+            });
+            mUiThreadRunner.accept(this::notifyDataSetChanged);
+        }
+
+        public void clear() {
             mApps.clear();
-            mApps.addAll(apps);
-            notifyDataSetChanged();
         }
 
         @Override
