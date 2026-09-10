@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;
     private TextInputEditText mInput;
+    private int mCurrentSearchId = 0;
 
     private AppViewAdapter mAdapter;
 
@@ -157,34 +158,35 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         AppFilter appFilter = new AppFilter(this);
         SharedPreferences preferences = getSharedPreferences(SHARED_APPS_PREFS, Context.MODE_PRIVATE);
 
-        mAdapter.clear();
+        int searchId = ++mCurrentSearchId;
+        mAdapter.clear(searchId);
 
         if (status == AppStatus.HIDDEN) {
             new AsyncIterator<>(mApplicationsInfo, app -> {
                 String pkg = app.activityInfo.packageName;
                 if (appFilter.isHidden(pkg)) {
-                    mAdapter.addApp(new AppDisplayItem(app, AppStatus.HIDDEN, true), mPackageManager);
+                    mAdapter.addApp(new AppDisplayItem(app, AppStatus.HIDDEN, true), mPackageManager, searchId);
                 }
             }).startProcessing();
         } else {
             // WHICHEVER case: show Favourites then Normals
             // First pass: Favourites
-            getLoop(preferences, AppStatus.FAVOURITE, query, appFilter).startProcessing();
+            getLoop(preferences, AppStatus.FAVOURITE, query, appFilter, searchId).startProcessing();
 
             // Second pass: Normals
-            getLoop(preferences, AppStatus.NORMAL, query, appFilter).startProcessing();
+            getLoop(preferences, AppStatus.NORMAL, query, appFilter, searchId).startProcessing();
         }
     }
 
     @NonNull
-    private AsyncIterator<ResolveInfo> getLoop(SharedPreferences preferences, AppStatus requiredStatus, String query, AppFilter appFilter) {
+    private AsyncIterator<ResolveInfo> getLoop(SharedPreferences preferences, AppStatus requiredStatus, String query, AppFilter appFilter, int searchId) {
         return new AsyncIterator<>(mApplicationsInfo, app -> {
             String pkg = app.activityInfo.packageName;
             String appName = app.loadLabel(mPackageManager).toString().toLowerCase().replace(" ", "");
             AppStatus appStatus = Enum.valueOf(AppStatus.class, preferences.getString(pkg, "NORMAL"));
 
             if (appStatus == requiredStatus && appName.contains(query) && !pkg.equals(getPackageName()) && !appFilter.isHidden(pkg)) {
-                mAdapter.addApp(new AppDisplayItem(app, requiredStatus, false), mPackageManager);
+                mAdapter.addApp(new AppDisplayItem(app, requiredStatus, false), mPackageManager, searchId);
             }
         });
     }
@@ -220,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         private final ReloadCallback mCallback;
         private final Consumer<String> mOnLaunchAppListener;
         private final Consumer<Runnable> mUiThreadRunner;
+        private int mActiveSearchId = 0;
 
         public AppViewAdapter(ReloadCallback callback, Consumer<String> onLaunchAppListener, Consumer<Runnable> uiThreadRunner) {
             this.mCallback = callback;
@@ -228,22 +231,27 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         }
 
         @SuppressLint("NotifyDataSetChanged")
-        public void addApp(AppDisplayItem app, PackageManager packageManager) {
-            mApps.add(app);
-            mApps.sort((a, b) -> {
-                // If the app is favourite, return it.
-                if(a.getStatus() == AppStatus.FAVOURITE)
-                    return -1;
-                if(b.getStatus() == AppStatus.FAVOURITE)
-                    return +1;
-                // Compare strings otherwise
-                return a.getResolveInfo().loadLabel(packageManager).toString()
-                        .compareToIgnoreCase(b.getResolveInfo().loadLabel(packageManager).toString());
-            });
+        public void addApp(AppDisplayItem app, PackageManager packageManager, int searchId) {
+            if (searchId != mActiveSearchId) return;
+
+            synchronized (mApps) {
+                mApps.add(app);
+                mApps.sort((a, b) -> {
+                    // If the app is favourite, return it.
+                    if (a.getStatus() == AppStatus.FAVOURITE && b.getStatus() != AppStatus.FAVOURITE)
+                        return -1;
+                    if (a.getStatus() != AppStatus.FAVOURITE && b.getStatus() == AppStatus.FAVOURITE)
+                        return +1;
+                    // Compare strings otherwise
+                    return a.getResolveInfo().loadLabel(packageManager).toString()
+                            .compareToIgnoreCase(b.getResolveInfo().loadLabel(packageManager).toString());
+                });
+            }
             mUiThreadRunner.accept(this::notifyDataSetChanged);
         }
 
-        public void clear() {
+        public void clear(int newSearchId) {
+            mActiveSearchId = newSearchId;
             mApps.clear();
         }
 

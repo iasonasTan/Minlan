@@ -15,7 +15,8 @@ final class AsyncIterator<T> {
     public void startProcessing() {
         int ITEMS_PER_THREAD = 8;
         for (int i = 0; i < mItems.size(); i += ITEMS_PER_THREAD) {
-            new ListFragmentProcessor(i, i + ITEMS_PER_THREAD, mItems, mConsumer)
+            int endIdx = Math.min(i + ITEMS_PER_THREAD, mItems.size()-1);
+            new ListFragmentProcessor(i, endIdx, mItems, mConsumer)
                     .start();
         }
     }
@@ -36,12 +37,8 @@ final class AsyncIterator<T> {
         public void run() {
             for (int i = mStart; i < mEnd; i++) {
                 System.out.println("Processor range: " + mStart + "-" + mEnd);
-                try {
-                    T item = mItems.get(i);
-                    mConsumer.accept(item);
-                } catch (NullPointerException | IndexOutOfBoundsException ignored) {
-                    // ignore
-                }
+                T item = mItems.get(i);
+                mConsumer.accept(item);
             }
         }
     }
