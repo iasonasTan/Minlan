@@ -1,5 +1,6 @@
 package com.app.minlan.view;
 
+import static com.app.minlan.MainActivity.SETTINGS_ICONS_VISIBLE;
 import static com.app.minlan.MainActivity.SETTINGS_TEXT_COLOR;
 import static com.app.minlan.MainActivity.SHARED_SETTINGS;
 
@@ -13,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,6 +85,12 @@ public abstract class AbstractAppView extends LinearLayout {
                 .getInt(SETTINGS_TEXT_COLOR, Color.WHITE);
         mNameView.setTextColor(color);
         mNameView.setText(resolveInfo.loadLabel(packageManager));
+
+        boolean iconVisible = getContext().getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                .getBoolean(SETTINGS_ICONS_VISIBLE, true);
+        if(!iconVisible) {
+            mIconView.setVisibility(View.GONE);
+        }
     }
 
     protected abstract int getMenuLayoutId();

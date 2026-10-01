@@ -19,4 +19,5 @@
     <string name="dark_icons">DARK ICONS</string>
     <string name="show_hints">Show hints</string>
     <string name="show_clock">SHOW CLOCK</string>
+    <string name="show_icons">Show icons</string>
 </resources>

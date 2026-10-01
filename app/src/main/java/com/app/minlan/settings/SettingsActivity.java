@@ -1,6 +1,7 @@
 package com.app.minlan.settings;
 
 import static com.app.minlan.MainActivity.SETTINGS_DARK_ICONS;
+import static com.app.minlan.MainActivity.SETTINGS_ICONS_VISIBLE;
 import static com.app.minlan.MainActivity.SETTINGS_SHOW_CLOCK;
 import static com.app.minlan.MainActivity.SETTINGS_TEXT_COLOR;
 import static com.app.minlan.MainActivity.SHARED_SETTINGS;
@@ -38,9 +39,22 @@ public class SettingsActivity extends AppCompatActivity {
         CheckBox clockCB = findViewById(R.id.show_clock_cb);
         clockCB.setChecked(getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
                 .getBoolean(SETTINGS_SHOW_CLOCK, false));
+        CheckBox iconsVisibleCB = findViewById(R.id.show_icons_cb);
+        iconsVisibleCB.setChecked(getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                .getBoolean(SETTINGS_ICONS_VISIBLE, true));
     }
 
+    // TODO: Create class 'CheckBoxSaver listener' that automatically saves the cb state to shared preferences 'SHARED_SETTINGS'
+
     private void setListeners() {
+        CheckBox iconsVisibleCB = findViewById(R.id.show_icons_cb);
+        iconsVisibleCB.setOnCheckedChangeListener((a,b)->{
+            getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(SETTINGS_ICONS_VISIBLE, b)
+                    .apply();
+        });
+
         CheckBox darkIconsCB = findViewById(R.id.dark_icons_cb);
         darkIconsCB.setOnCheckedChangeListener((a, b) -> {
             getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
@@ -63,9 +77,7 @@ public class SettingsActivity extends AppCompatActivity {
         final int defaultColor = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getInt(SETTINGS_TEXT_COLOR, Color.WHITE);
         findViewById(R.id.select_color_b).setOnClickListener(v -> new AmbilWarnaDialog(this, defaultColor, false, listener).show());
 
-        findViewById(R.id.show_hints).setOnClickListener(v -> {
-            new Greeter(this).forceShow();
-        });
+        findViewById(R.id.show_hints).setOnClickListener(v -> new Greeter(this).forceShow());
 
         CheckBox clockCB = findViewById(R.id.show_clock_cb);
         clockCB.setOnCheckedChangeListener((a, b) -> {

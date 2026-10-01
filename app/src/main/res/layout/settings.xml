@@ -66,6 +66,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
+            <CheckBox
+                android:id="@+id/show_icons_cb"
+                android:textColor="@color/white"
+                android:background="@drawable/view_background"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/show_icons"
+                android:textAlignment="center"
+                android:textSize="15sp" />
+
         </LinearLayout>
     </ScrollView>
 

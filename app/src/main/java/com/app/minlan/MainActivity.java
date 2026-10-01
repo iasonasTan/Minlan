@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     public static final String SETTINGS_SHOW_CLOCK= "show_clock";
     public static final String SETTINGS_TEXT_COLOR= "text_color";
 
+    public static final String SETTINGS_ICONS_VISIBLE="icons_visible";
+
     private List<ResolveInfo> mApplicationsInfo;
     private PackageManager mPackageManager;
     private TextInputEditText mInput;
