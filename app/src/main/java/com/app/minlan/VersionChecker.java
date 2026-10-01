@@ -18,6 +18,6 @@ public class VersionChecker extends AbstractVersionChecker {
 
     @Override
     protected String latestVersionFileWebUrl() {
-        return "https://raw.githubusercontent.com/iasonasTan/Minlan/master/latest_version.txt";
+        return "https://raw.githubusercontent.com/iasonasTan/Minlan/master/version.txt";
     }
 }
