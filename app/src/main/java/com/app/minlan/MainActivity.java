@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     private PackageManager mPackageManager;
     private TextInputEditText mInput;
     private int mCurrentSearchId = 0;
+    private int mResourceId;
 
     private AppViewAdapter mAdapter;
 
@@ -129,11 +130,15 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
     @Override
     protected void onResume() {
         super.onResume();
-        ImageButton button = findViewById(R.id.clear_button);
-        final int resourceId = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE).getBoolean(SETTINGS_DARK_ICONS, false) ?
-                R.drawable.clear_dark : R.drawable.clear;
-        Drawable drawableImage = AppCompatResources.getDrawable(this, resourceId);
-        button.setImageDrawable(drawableImage);
+        final int resourceId = getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+                .getBoolean(SETTINGS_DARK_ICONS, false) ? R.drawable.clear_dark : R.drawable.clear;
+        if(resourceId != mResourceId) {
+            Drawable drawableImage = AppCompatResources.getDrawable(this, resourceId);
+            ImageButton button = findViewById(R.id.clear_button);
+            button.setImageDrawable(drawableImage);
+            mResourceId = resourceId;
+        }
+
         addAppsToLayout(Objects.requireNonNull(mInput.getText()).toString(), AppStatus.WHICHEVER);
         configClock();
 
