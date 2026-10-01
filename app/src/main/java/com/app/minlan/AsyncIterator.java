@@ -1,5 +1,7 @@
 package com.app.minlan;
 
+import android.util.Log;
+
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -13,7 +15,7 @@ final class AsyncIterator<T> {
     }
 
     public void startProcessing() {
-        int ITEMS_PER_THREAD = 8;
+        int ITEMS_PER_THREAD = 20;
         for (int i = 0; i < mItems.size(); i += ITEMS_PER_THREAD) {
             int endIdx = Math.min(i + ITEMS_PER_THREAD, mItems.size()-1);
             new ListFragmentProcessor(i, endIdx, mItems, mConsumer)
@@ -35,11 +37,15 @@ final class AsyncIterator<T> {
 
         @Override
         public void run() {
+            long startTime = System.nanoTime();
             for (int i = mStart; i < mEnd; i++) {
                 System.out.println("Processor range: " + mStart + "-" + mEnd);
                 T item = mItems.get(i);
                 mConsumer.accept(item);
             }
+            long endTime = System.nanoTime();
+            long deltaTime = endTime - startTime;
+            Log.d("asyncIter", "Async iterator #"+hashCode()+" finished. (took " + deltaTime/1_000_000 + " milliseconds)");
         }
     }
 }
