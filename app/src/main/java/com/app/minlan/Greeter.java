@@ -1,9 +1,8 @@
 package com.app.minlan;
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.content.DialogInterface;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public final class Greeter {
     private final Context context;
