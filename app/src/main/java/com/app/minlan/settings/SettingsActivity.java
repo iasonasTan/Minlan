@@ -6,13 +6,16 @@ import static com.app.minlan.MainActivity.SETTINGS_SHOW_CLOCK;
 import static com.app.minlan.MainActivity.SETTINGS_TEXT_COLOR;
 import static com.app.minlan.MainActivity.SHARED_SETTINGS;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.app.minlan.Greeter;
@@ -44,24 +47,12 @@ public class SettingsActivity extends AppCompatActivity {
                 .getBoolean(SETTINGS_ICONS_VISIBLE, true));
     }
 
-    // TODO: Create class 'CheckBoxSaver listener' that automatically saves the cb state to shared preferences 'SHARED_SETTINGS'
-
     private void setListeners() {
         CheckBox iconsVisibleCB = findViewById(R.id.show_icons_cb);
-        iconsVisibleCB.setOnCheckedChangeListener((a,b)->{
-            getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean(SETTINGS_ICONS_VISIBLE, b)
-                    .apply();
-        });
+        iconsVisibleCB.setOnCheckedChangeListener(new CheckBoxStateSaveListener(this, SETTINGS_ICONS_VISIBLE));
 
         CheckBox darkIconsCB = findViewById(R.id.dark_icons_cb);
-        darkIconsCB.setOnCheckedChangeListener((a, b) -> {
-            getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean(SETTINGS_DARK_ICONS, darkIconsCB.isChecked())
-                    .apply();
-        });
+        darkIconsCB.setOnCheckedChangeListener(new CheckBoxStateSaveListener(this, SETTINGS_DARK_ICONS));
 
         final var listener = new AmbilWarnaDialog.OnAmbilWarnaListener() {
             @Override
@@ -80,11 +71,24 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.show_hints).setOnClickListener(v -> new Greeter(this).forceShow());
 
         CheckBox clockCB = findViewById(R.id.show_clock_cb);
-        clockCB.setOnCheckedChangeListener((a, b) -> {
-            getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
+        clockCB.setOnCheckedChangeListener(new CheckBoxStateSaveListener(this, SETTINGS_SHOW_CLOCK));
+    }
+
+    private static final class CheckBoxStateSaveListener implements CompoundButton.OnCheckedChangeListener {
+        private final Activity mActivity;
+        private final String mPrefs;
+
+        private CheckBoxStateSaveListener(Activity activity, String prefs) {
+            this.mActivity = activity;
+            this.mPrefs = prefs;
+        }
+
+        @Override
+        public void onCheckedChanged(@NonNull CompoundButton buttonView, boolean isChecked) {
+            mActivity.getSharedPreferences(SHARED_SETTINGS, Context.MODE_PRIVATE)
                     .edit()
-                    .putBoolean(SETTINGS_SHOW_CLOCK, clockCB.isChecked())
+                    .putBoolean(mPrefs, isChecked)
                     .apply();
-        });
+        }
     }
 }
