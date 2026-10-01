@@ -1,12 +1,14 @@
 package com.app.minlan;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.lib.version.checker.AbstractVersionChecker;
 
 public class VersionChecker extends AbstractVersionChecker {
     public VersionChecker(Activity activity) {
         super(activity);
+        Log.d("vch", "Checking for updates...");
     }
 
     @Override

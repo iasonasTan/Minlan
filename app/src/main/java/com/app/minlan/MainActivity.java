@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         setListeners();
 
         new Greeter(this).showHints();
-        new VersionChecker(this).checkVersionAsynchronously();
     }
 
     private void setListeners() {
@@ -137,6 +136,8 @@ public class MainActivity extends AppCompatActivity implements ReloadCallback {
         button.setImageDrawable(drawableImage);
         addAppsToLayout(Objects.requireNonNull(mInput.getText()).toString(), AppStatus.WHICHEVER);
         configClock();
+
+        new VersionChecker(this).checkVersionAsynchronously();
     }
 
     @Override
